@@ -2,9 +2,13 @@ package com.facturation.factureservice.service;
 
 import com.facturation.factureservice.dto.FactureDto;
 import com.facturation.factureservice.utils.RandomNumero;
+import com.itextpdf.kernel.colors.Color;
+import com.itextpdf.kernel.colors.DeviceRgb;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.layout.Document;
+import com.itextpdf.layout.borders.Border;
+import com.itextpdf.layout.element.Cell;
 import com.itextpdf.layout.element.Paragraph;
 import com.itextpdf.layout.element.Table;
 import com.itextpdf.layout.properties.TextAlignment;
@@ -25,42 +29,153 @@ public class FactureService {
         PdfDocument pdfDoc = new PdfDocument(writer);
         Document document = new Document(pdfDoc);
 
-        // Titre
-        Paragraph title = new Paragraph("Facture n° " + RandomNumero.genererRandomNumero())
-                .setFontSize(20)
-                .setBold()
-                .setTextAlignment(TextAlignment.CENTER);
-        document.add(title);
+        // Table d'en-tête avec deux colonnes
+        float[] headerColWidths = {1, 1};
+        Table header = new Table(headerColWidths).useAllAvailableWidth();
 
-        // Infos client
-        document.add(new Paragraph("Client : " + facture.getClientNom()));
-        String dateString = facture.getDate();
-        LocalDate date = LocalDate.parse(dateString);
+// Cellule gauche : Mathis Payen, alignée à gauche, sans bordure
+        header.addCell(
+                new Cell()
+                        .add(new Paragraph("Mathis Payen").setBold()
+                                .setFontSize(14))
+                        .setBorder(Border.NO_BORDER)
+                        .setTextAlignment(TextAlignment.LEFT)
+        );
 
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d MMMM yyyy", Locale.FRENCH);
-        String dateFormater = date.format(formatter);
+// Cellule droite : Note d'honoraire, alignée à droite, sans bordure
+        header.addCell(
+                new Cell()
+                        .add(new Paragraph("NOTE D'HONORAIRE")
+                                .setBold()
+                                .setFontSize(16))
+                        .setBorder(Border.NO_BORDER)
+                        .setTextAlignment(TextAlignment.RIGHT)
+        );
 
-        document.add(new Paragraph("Date : " + dateFormater));
+// Ajout au document
+        document.add(header);
+
+
+        // Deuxième ligne de l'en-tête : gauche = "Ostéopathe D.O.", droite = date
+        float[] header2ColWidths = {1, 1};
+        Table header2 = new Table(header2ColWidths).useAllAvailableWidth();
+
+        header2.addCell(
+                new Cell()
+                        .add(new Paragraph("Ostéopathe D.O.").setItalic())
+                        .setBorder(Border.NO_BORDER)
+                        .setTextAlignment(TextAlignment.LEFT)
+        );
+
+        header2.addCell(
+                new Cell()
+                        .add(new Paragraph(LocalDate.now().format(
+                                DateTimeFormatter.ofPattern("dd/MM/yyyy"))))
+                        .setBorder(Border.NO_BORDER)
+                        .setTextAlignment(TextAlignment.RIGHT)
+        );
+
+// Ajout au document
+        document.add(header2);
+
+        // Troisieme ligne de l'en-tête : gauche = "adresse", droite = N° de facture
+        float[] header3ColWidths = {1, 1};
+        Table header3 = new Table(header3ColWidths).useAllAvailableWidth();
+
+        header3.addCell(
+                new Cell()
+                        .add(new Paragraph("4 rue Emile BASLY"))
+                        .setBorder(Border.NO_BORDER)
+                        .setTextAlignment(TextAlignment.LEFT)
+        );
+
+        header3.addCell(
+                new Cell()
+                        .add(new Paragraph("n° " + RandomNumero.genererRandomNumero()))
+                        .setBorder(Border.NO_BORDER)
+                        .setTextAlignment(TextAlignment.RIGHT)
+        );
+
+// Ajout au document
+        document.add(header3);
+
+
+
+        // 4eme ligne adresse ville
+        document.add(new Paragraph("62410 MEURCHIN"));
+
+        // 5eme ligne Teléphone
+        document.add(new Paragraph("Tél : 07.69.57.15.55"));
+
+        // 5eme ligne adresse mail
+        document.add(new Paragraph("Mathispayen@gmail.com"));
+
+        // 6eme ligne RPPS
+        document.add(new Paragraph("Identifiant RPPS : 810111107180"));
+
+        document.add(new Paragraph("\n"));
+
+        // 7eme ligne nom client
+        document.add(new Paragraph(facture.getClientNom())
+                .setTextAlignment(TextAlignment.RIGHT)
+                .setBold());
+
         document.add(new Paragraph("\n"));
 
         // Tableau facture
-        float[] columnWidths = {200F, 200F};
-        Table table = new Table(columnWidths);
+        float[] columnWidths = {7, 3};
+        Table table = new Table(columnWidths).useAllAvailableWidth();
 
-        table.addCell("Description");
-        table.addCell(facture.getDescription());
+        // Couleur de fond pour les en-têtes
+        Color bleuPale = new DeviceRgb(173, 216, 230);
 
-        table.addCell("Montant");
-        table.addCell(String.format("%.2f €", facture.getMontant()));
+        // En-têtes
+        table.addCell(
+                new Cell()
+                        .add(new Paragraph("Prestations").setBold())
+                        .setBackgroundColor(bleuPale)
+                        .setTextAlignment(TextAlignment.LEFT)
+        );
+        table.addCell(
+                new Cell()
+                        .add(new Paragraph("Montant").setBold().setTextAlignment(TextAlignment.RIGHT))
+                        .setBackgroundColor(bleuPale)
+        );
 
+        // Ligne de prestation
+        table.addCell(
+                new Cell()
+                        .add(new Paragraph("1 Séance d'ostéopathie"))
+                        .setTextAlignment(TextAlignment.LEFT)
+        );
+        table.addCell(
+                new Cell()
+                        .add(new Paragraph(facture.getMontant() + " €").setTextAlignment(TextAlignment.RIGHT))
+        );
+
+
+        // Ligne total
+        table.addCell(
+                new Cell()
+                        .add(new Paragraph("Total").setBold())
+                        .setPaddingRight(6)
+                        .setBorder(Border.NO_BORDER)
+                        .setTextAlignment(TextAlignment.RIGHT)
+        );
+        table.addCell(new Cell().add(new Paragraph(String.format("%.2f €", facture.getMontant())).setBold().setTextAlignment(TextAlignment.RIGHT)));
+
+        // Ajout au document
         document.add(table);
 
-        // Total
+        // acquitté
         document.add(new Paragraph("\n"));
-        document.add(new Paragraph("Total : " + String.format("%.2f €", facture.getMontant()))
-                .setBold()
-                .setTextAlignment(TextAlignment.RIGHT));
+        document.add(new Paragraph("Acquitté le " + LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))));
 
+        // nom du praticien
+        document.add(new Paragraph("\n"));
+        document.add(new Paragraph("Mathis Payen")
+                .setTextAlignment(TextAlignment.LEFT)
+                .setBold());
         document.close();
 
         return baos.toByteArray();
