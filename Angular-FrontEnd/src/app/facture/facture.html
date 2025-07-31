@@ -1,0 +1,30 @@
+<p>facture works!</p>
+<h2>Générer une facture</h2>
+
+<form (ngSubmit)="genererFacture()" #factureForm="ngForm">
+  <label>Nom du client :</label>
+  <input type="text" [(ngModel)]="facture.clientNom" name="clientNom" required />
+  <br />
+
+  <label>Date :</label>
+  <input type="date" [(ngModel)]="facture.date" name="date" required />
+  <br />
+
+  <label>Description :</label>
+  <input type="text" [(ngModel)]="facture.description" name="description" required />
+  <br />
+
+  <label>Montant (€) :</label>
+  <input type="number" [(ngModel)]="facture.montant" name="montant" required />
+  <br />
+
+  <button type="submit">Télécharger la facture</button>
+</form>
+
+<button 
+  (click)="arreterBackend()" 
+  [style.backgroundColor]="buttonClicked ? 'red' : 'green'" 
+  [style.marginTop.px]="20"
+  style="color:white; padding:10px; border:none; cursor:pointer;">
+  {{ buttonClicked ? 'Backend arrêté' : 'Arrêter le backend' }}
+</button>
