@@ -23,6 +23,8 @@ public class FactureController {
     @PostMapping(produces = MediaType.APPLICATION_PDF_VALUE)
     public ResponseEntity<byte[]> createFacture(@RequestBody FactureDto facture) {
         try {
+            System.out.println("📥 Facture reçue : " + facture);
+
             byte[] pdfBytes = factureService.genererFacturePdf(facture);
 
             HttpHeaders headers = new HttpHeaders();
@@ -34,10 +36,14 @@ public class FactureController {
                     .body(pdfBytes);
 
         } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(500).build();
+            System.err.println("🛑 Erreur pendant la génération du PDF");
+            e.printStackTrace(); // 🔥 Ceci affiche la cause réelle dans ta console
+            return ResponseEntity.status(500)
+                    .contentType(MediaType.TEXT_PLAIN)
+                    .body(("Erreur serveur : " + e.getMessage()).getBytes());
         }
     }
+
 
 
 }

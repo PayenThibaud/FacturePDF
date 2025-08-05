@@ -2,6 +2,7 @@ package com.facturation.factureservice.service;
 
 import com.facturation.factureservice.dto.FactureDto;
 import com.facturation.factureservice.utils.RandomNumero;
+import com.itextpdf.io.image.ImageData;
 import com.itextpdf.io.image.ImageDataFactory;
 import com.itextpdf.kernel.colors.Color;
 import com.itextpdf.kernel.colors.DeviceRgb;
@@ -17,6 +18,7 @@ import com.itextpdf.layout.properties.TextAlignment;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.net.URL;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -32,11 +34,19 @@ public class FactureService {
         PdfWriter writer = new PdfWriter(baos);
         PdfDocument pdfDoc = new PdfDocument(writer);
         Document document = new Document(pdfDoc);
-        DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd"); // format actuel
-        DateTimeFormatter outputFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy"); // format voulu
 
-        LocalDate date = LocalDate.parse(facture.getDate(), inputFormatter);
-        String formattedDate = date.format(outputFormatter);
+        // Mise en forme de la date
+        String formattedDate = "";
+        try {
+            DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            DateTimeFormatter outputFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
+            LocalDate date = LocalDate.parse(facture.getDate(), inputFormatter);
+            formattedDate = date.format(outputFormatter);
+        } catch (Exception e) {
+            formattedDate = "Date invalide";
+            e.printStackTrace();
+        }
 
         // Table d'en-tête avec deux colonnes
         float[] headerColWidths = {1, 1};
@@ -206,15 +216,16 @@ public class FactureService {
                 .setBold());
 
         // signature
-        URL signatureUrl = getClass().getClassLoader().getResource("static/signMathis.png");
-
-        if (signatureUrl != null) {
-            Image signature = new Image(ImageDataFactory.create(signatureUrl.getPath()));
+        InputStream is = getClass().getClassLoader().getResourceAsStream("static/signMathis.png");
+        if (is != null) {
+            ImageData imageData = ImageDataFactory.create(is.readAllBytes());
+            Image signature = new Image(imageData);
             signature.setWidth(100);
             document.add(signature);
         } else {
-            System.out.println("Image de signature non trouvée, saut de l'ajout.");
+            System.out.println("⚠️ Image de signature non trouvée");
         }
+
 
 
         // Fermeture du document

@@ -21,18 +21,33 @@ export class FactureComponent {
 
   constructor(private http: HttpClient) { }
 
-  genererFacture() {
-    this.http.post('http://host.docker.internal:8080/api/factures', this.facture, {
-      responseType: 'blob'
-    }).subscribe(blob => {
+genererFacture() {
+  this.http.post('http://host.docker.internal:8080/api/factures', this.facture, {
+    responseType: 'blob'
+  }).subscribe({
+    next: (blob) => {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
       a.download = 'facture.pdf';
       a.click();
       window.URL.revokeObjectURL(url);
-    });
-  }
+    },
+    error: (err) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        console.error('🛑 Erreur backend :', reader.result);
+        alert('Erreur lors de la génération :\n' + reader.result);
+      };
+      if (err.error instanceof Blob) {
+        reader.readAsText(err.error);
+      } else {
+        console.error('Erreur inattendue :', err);
+        alert('Erreur inconnue : ' + err.message);
+      }
+    }
+  });
+}
 
 buttonClicked = false;
 
