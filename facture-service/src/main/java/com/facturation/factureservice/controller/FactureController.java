@@ -34,6 +34,7 @@ public class FactureController {
                     .body(pdfBytes);
 
         } catch (Exception e) {
+            e.printStackTrace();
             return ResponseEntity.status(500).build();
         }
     }

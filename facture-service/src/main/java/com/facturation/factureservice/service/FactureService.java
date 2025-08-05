@@ -2,6 +2,7 @@ package com.facturation.factureservice.service;
 
 import com.facturation.factureservice.dto.FactureDto;
 import com.facturation.factureservice.utils.RandomNumero;
+import com.itextpdf.io.image.ImageDataFactory;
 import com.itextpdf.kernel.colors.Color;
 import com.itextpdf.kernel.colors.DeviceRgb;
 import com.itextpdf.kernel.pdf.PdfDocument;
@@ -9,12 +10,14 @@ import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.layout.Document;
 import com.itextpdf.layout.borders.Border;
 import com.itextpdf.layout.element.Cell;
+import com.itextpdf.layout.element.Image;
 import com.itextpdf.layout.element.Paragraph;
 import com.itextpdf.layout.element.Table;
 import com.itextpdf.layout.properties.TextAlignment;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
+import java.net.URL;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
@@ -22,12 +25,18 @@ import java.util.Locale;
 @Service
 public class FactureService {
 
+
     public byte[] genererFacturePdf(FactureDto facture) throws Exception {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
         PdfWriter writer = new PdfWriter(baos);
         PdfDocument pdfDoc = new PdfDocument(writer);
         Document document = new Document(pdfDoc);
+        DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd"); // format actuel
+        DateTimeFormatter outputFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy"); // format voulu
+
+        LocalDate date = LocalDate.parse(facture.getDate(), inputFormatter);
+        String formattedDate = date.format(outputFormatter);
 
         // Table d'en-tête avec deux colonnes
         float[] headerColWidths = {1, 1};
@@ -45,7 +54,7 @@ public class FactureService {
 // Cellule droite : Note d'honoraire, alignée à droite, sans bordure
         header.addCell(
                 new Cell()
-                        .add(new Paragraph("NOTE D'HONORAIRE")
+                        .add(new Paragraph("NOTE D'HONORAIRES")
                                 .setBold()
                                 .setFontSize(16))
                         .setBorder(Border.NO_BORDER)
@@ -69,8 +78,7 @@ public class FactureService {
 
         header2.addCell(
                 new Cell()
-                        .add(new Paragraph(LocalDate.now().format(
-                                DateTimeFormatter.ofPattern("dd/MM/yyyy"))))
+                        .add(new Paragraph(formattedDate))
                         .setBorder(Border.NO_BORDER)
                         .setTextAlignment(TextAlignment.RIGHT)
         );
@@ -115,10 +123,30 @@ public class FactureService {
 
         document.add(new Paragraph("\n"));
 
+
+        // ligne Patient :
+        document.add(new Paragraph("Patient :")
+                .setPaddingRight(20)
+                .setTextAlignment(TextAlignment.RIGHT));
+
+
         // 7eme ligne nom client
         document.add(new Paragraph(facture.getClientNom())
                 .setTextAlignment(TextAlignment.RIGHT)
                 .setBold());
+
+        // 8eme ligne Adresse client
+        document.add(new Paragraph(facture.getClientadresse())
+                .setTextAlignment(TextAlignment.RIGHT));
+
+        // 9eme ligne teléphone client
+        document.add(new Paragraph("Tél: " + facture.getClienttelephone())
+                .setTextAlignment(TextAlignment.RIGHT));
+
+        // 10eme ligne EMAIL client
+        document.add(new Paragraph(facture.getClientemail())
+                .setTextAlignment(TextAlignment.RIGHT));
+
 
         document.add(new Paragraph("\n"));
 
@@ -169,13 +197,27 @@ public class FactureService {
 
         // acquitté
         document.add(new Paragraph("\n"));
-        document.add(new Paragraph("Acquitté le " + LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))));
+        document.add(new Paragraph("Acquitté le " + formattedDate));
 
         // nom du praticien
         document.add(new Paragraph("\n"));
         document.add(new Paragraph("Mathis Payen")
                 .setTextAlignment(TextAlignment.LEFT)
                 .setBold());
+
+        // signature
+        URL signatureUrl = getClass().getClassLoader().getResource("static/signMathis.png");
+
+        if (signatureUrl != null) {
+            Image signature = new Image(ImageDataFactory.create(signatureUrl.getPath()));
+            signature.setWidth(100);
+            document.add(signature);
+        } else {
+            System.out.println("Image de signature non trouvée, saut de l'ajout.");
+        }
+
+
+        // Fermeture du document
         document.close();
 
         return baos.toByteArray();
