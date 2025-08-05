@@ -11,10 +11,12 @@ import { HttpClient, HttpClientModule } from '@angular/common/http';
 })
 export class FactureComponent {
   facture = {
-    clientNom: '',
-    date: '',
-    description: '',
-    montant: 0
+     clientNom: '',
+  date: '',
+  montant: 0,
+  clienttelephone: '',
+  clientemail: '',
+  clientadresse: ''
   };
 
   constructor(private http: HttpClient) { }

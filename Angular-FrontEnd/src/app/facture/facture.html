@@ -2,12 +2,29 @@
 <h2>Générer une facture</h2>
 
 <form (ngSubmit)="genererFacture()" #factureForm="ngForm">
-  <label>Nom du client :</label>
+    <label>Nom du client :</label>
   <input type="text" [(ngModel)]="facture.clientNom" name="clientNom" required />
+  <br />
+
+  <label>Date :</label>
+  <input type="date" [(ngModel)]="facture.date" name="date" required />
   <br />
 
   <label>Montant (€) :</label>
   <input type="number" [(ngModel)]="facture.montant" name="montant" required />
+  <br />
+
+  <label>Téléphone :</label>
+  <input type="tel" [(ngModel)]="facture.clienttelephone" name="clienttelephone" />
+  <br />
+
+  <label>Email :</label>
+  <input type="email" [(ngModel)]="facture.clientemail" name="clientemail" />
+  <br />
+
+  <label>Adresse :</label>
+  <input type="text" [(ngModel)]="facture.clientadresse" name="clientadresse" />
+  <br />
   <br />
 
   <button type="submit">Télécharger la facture</button>
