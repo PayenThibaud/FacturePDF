@@ -129,7 +129,7 @@ public class FactureService {
         document.add(new Paragraph("Mathispayen@gmail.com"));
 
         // 6eme ligne RPPS
-        document.add(new Paragraph("Identifiant RPPS : 810111107180"));
+        document.add(new Paragraph("Identifiant RPPS : 10111107180"));
 
         document.add(new Paragraph("\n"));
 
